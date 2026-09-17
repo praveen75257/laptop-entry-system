@@ -37,7 +37,9 @@ def health_check():
         "service": "CPAT Laptop Gate Management System"
     }), 200 if db_ok else 500
 
-# Vercel entrypoint exposes 'app' directly
+# Vercel entrypoint exposes 'app' and 'application'
+application = app
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print(f"Starting Laptop Gate System on http://127.0.0.1:{port} ...")

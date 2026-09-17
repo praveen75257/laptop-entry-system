@@ -1,0 +1,80 @@
+{% extends "admin/base_admin.html" %}
+{% block page_title %}Add New Student{% endblock %}
+{% block page_content %}
+
+<div class="card" style="max-width: 750px; margin: 0 auto;">
+  <div class="card-header">
+    <h3>Add Student & Register Laptop</h3>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="/admin/students/add" id="addStudentForm">
+      
+      <div class="grid grid-2" style="gap: 16px;">
+        <div class="form-group">
+          <label class="form-label" for="student_name">Student Name *</label>
+          <input type="text" id="student_name" name="student_name" class="form-control" required placeholder="Full Student Name" value="{{ form_data.student_name if form_data else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="registration_number">Registration Number *</label>
+          <input type="text" id="registration_number" name="registration_number" class="form-control" required placeholder="REG NO:" value="{{ form_data.registration_number if form_data else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="department">Department *</label>
+          <input type="text" id="department" name="department" class="form-control" required placeholder="Department (e.g. CSE, IT, ECE)" value="{{ form_data.department if form_data else '' }}" list="deptOptions">
+          <datalist id="deptOptions">
+            <option value="CSE">
+            <option value="IT">
+            <option value="ECE">
+            <option value="EEE">
+            <option value="MECH">
+            <option value="CIVIL">
+            <option value="AIDS">
+            <option value="DCIoT">
+            <option value="DMT">
+            <option value="DME">
+            <option value="DRA">
+          </datalist>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="year">Year *</label>
+          <select id="year" name="year" class="form-control form-select" required>
+            <option value="">Select Year</option>
+            <option value="1ST YEAR" {% if form_data and form_data.year == '1ST YEAR' %}selected{% endif %}>1ST YEAR</option>
+            <option value="2ND YEAR" {% if form_data and form_data.year == '2ND YEAR' %}selected{% endif %}>2ND YEAR</option>
+            <option value="3RD YEAR" {% if form_data and form_data.year == '3RD YEAR' %}selected{% endif %}>3RD YEAR</option>
+            <option value="4TH YEAR" {% if form_data and form_data.year == '4TH YEAR' %}selected{% endif %}>4TH YEAR</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="phone_number">Phone Number *</label>
+          <input type="tel" id="phone_number" name="phone_number" class="form-control" required placeholder="10-digit Mobile Number" pattern="[0-9]{10}" maxlength="10" value="{{ form_data.phone_number if form_data else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="laptop_name">Laptop Brand / Name *</label>
+          <input type="text" id="laptop_name" name="laptop_name" class="form-control" required placeholder="BRAND" value="{{ form_data.laptop_name if form_data else '' }}">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 16px;">
+        <label class="form-label" for="laptop_model_number">Laptop Model Number *</label>
+        <input type="text" id="laptop_model_number" name="laptop_model_number" class="form-control" required placeholder="MODEL NUMBER" value="{{ form_data.laptop_model_number if form_data else '' }}">
+      </div>
+
+      <div class="form-actions" style="display: flex; gap: 12px; margin-top: 24px;">
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Register & Generate QR
+        </button>
+        <a href="/admin/students" class="btn btn-outline">Cancel</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+{% endblock %}

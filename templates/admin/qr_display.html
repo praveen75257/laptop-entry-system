@@ -1,0 +1,112 @@
+{% extends "admin/base_admin.html" %}
+{% block page_title %}Student QR Code Pass{% endblock %}
+{% block page_content %}
+
+<div class="qr-page-container" style="max-width: 650px; margin: 0 auto;">
+
+  <!-- Printable Access Pass Card -->
+  <div class="card printable-card" id="qrPrintArea" style="border: 2px solid var(--accent-blue); background: var(--bg-secondary); overflow: hidden;">
+    
+    <!-- Pass Header -->
+    <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 2px solid var(--accent-blue); padding: 18px 24px; text-align: center;">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 4px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="20" x2="22" y2="20"></line></svg>
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; letter-spacing: 1px; margin: 0;">COLLEGE LAPTOP ACCESS QR</h2>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0;">Campus Security & Entry Management System</p>
+    </div>
+
+    <!-- Pass Body -->
+    <div class="card-body" style="padding: 24px; text-align: center;">
+      
+      <!-- QR Image Display -->
+      <div class="qr-image-wrapper" style="background: #ffffff; padding: 16px; border-radius: 16px; display: inline-block; box-shadow: 0 8px 24px rgba(0,0,0,0.4); margin-bottom: 20px;">
+        <img src="{{ qr_data_uri or ('/api/qr-image/' ~ (student.registration_number or student.Registration_Number)) }}" alt="Student QR Code" id="qrImage" style="width: 220px; height: 220px; display: block;">
+      </div>
+
+      <!-- Student Details Summary -->
+      <div class="student-info-grid" style="text-align: left; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;">
+        <div class="grid grid-2" style="gap: 12px; font-size: 0.95rem;">
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; display: block;">Student Name</span>
+            <strong style="font-size: 1.1rem; color: var(--accent-blue);">{{ student.student_name or student.Student_Name }}</strong>
+          </div>
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; display: block;">Registration Number</span>
+            <strong style="font-size: 1.1rem;"><code>{{ student.registration_number or student.Registration_Number }}</code></strong>
+          </div>
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; display: block;">Department & Year</span>
+            <strong>{{ student.department or student.Department }} ({{ student.year or student.Year }})</strong>
+          </div>
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; display: block;">Phone Number</span>
+            <strong>{{ student.phone_number or student.Phone_Number }}</strong>
+          </div>
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; display: block;">Laptop Name</span>
+            <strong>{{ student.laptop_name or student.Laptop_Name }}</strong>
+          </div>
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; display: block;">Laptop Model Number</span>
+            <strong><code>{{ student.laptop_model_number or student.Laptop_Model_Number }}</code></strong>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Action Buttons (Hidden on Print) -->
+    <div class="card-footer no-print" style="display: flex; gap: 12px; justify-content: center; padding: 18px; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.2);">
+      <button onclick="downloadQR('{{ student.registration_number or student.Registration_Number }}')" class="btn btn-primary">
+        <i class="bi bi-download me-1"></i> Download PNG
+      </button>
+      <button onclick="printQR()" class="btn btn-secondary">
+        <i class="bi bi-printer me-1"></i> Print Access Pass
+      </button>
+      <a href="/admin/students" class="btn btn-outline">Back to Students</a>
+    </div>
+
+
+  </div>
+
+</div>
+
+<!-- Print Stylesheet -->
+<style>
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .sidebar, .topbar, .no-print, .flash-messages {
+    display: none !important;
+  }
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .qr-page-container {
+    max-width: 100% !important;
+  }
+  .printable-card {
+    border: 2px solid #000000 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+  .printable-card * {
+    color: #000000 !important;
+  }
+  .qr-image-wrapper {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+}
+</style>
+
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

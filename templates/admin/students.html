@@ -1,0 +1,77 @@
+{% extends "admin/base_admin.html" %}
+{% block page_title %}Student Directory{% endblock %}
+{% block page_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <form method="GET" action="/admin/students" class="search-bar" style="flex: 1; max-width: 400px;">
+    <i class="bi bi-search"></i>
+    <input type="text" name="search" id="searchInput" placeholder="Search student by name, reg no, department..." value="{{ search or '' }}">
+  </form>
+  <a href="/admin/students/add" class="btn btn-primary">
+    <i class="bi bi-person-plus-fill me-1"></i> Add Student
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-container">
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Reg Number</th>
+            <th>Department</th>
+            <th>Year</th>
+            <th>Phone</th>
+            <th>Laptop</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="studentsTableBody">
+          {% if students %}
+            {% for s in students %}
+            <tr>
+              <td><strong>{{ s.student_name }}</strong></td>
+              <td><code>{{ s.registration_number }}</code></td>
+              <td>{{ s.department }}</td>
+              <td>{{ s.year }}</td>
+              <td>{{ s.phone_number }}</td>
+              <td>
+                <div>{{ s.laptop_name }}</div>
+                <small class="text-secondary">{{ s.laptop_model_number }}</small>
+              </td>
+              <td>
+                <span class="badge {% if s.active %}badge-inside{% else %}badge-outside{% endif %}">
+                  {{ 'ACTIVE' if s.active else 'INACTIVE' }}
+                </span>
+              </td>
+              <td class="text-end" style="white-space: nowrap;">
+                <a href="/admin/generate-qr/{{ s.registration_number }}" class="btn btn-sm btn-primary" title="View & Print QR">
+                  <i class="bi bi-qr-code"></i> QR
+                </a>
+                <a href="/admin/students/edit/{{ s.registration_number }}" class="btn btn-sm btn-outline" title="Edit Student">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="POST" action="/admin/students/deactivate/{{ s.registration_number }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to deactivate {{ s.student_name }} ({{ s.registration_number }})?\n\nThis will remove them from active student listings and invalidate their QR code. Past gate records will remain preserved.');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate Student & Invalidate QR">
+                    <i class="bi bi-person-x me-1"></i> Deactivate
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-4 text-secondary">
+                No students found matching your search.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

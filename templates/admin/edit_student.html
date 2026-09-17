@@ -1,0 +1,77 @@
+{% extends "admin/base_admin.html" %}
+{% block page_title %}Edit Student Details{% endblock %}
+{% block page_content %}
+
+<div class="card" style="max-width: 750px; margin: 0 auto;">
+  <div class="card-header">
+    <h3>Edit Student & Laptop Info</h3>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="/admin/students/edit/{{ student.registration_number or student.Registration_Number }}" id="editStudentForm">
+      
+      <div class="grid grid-2" style="gap: 16px;">
+        <div class="form-group">
+          <label class="form-label" for="student_name">Student Name *</label>
+          <input type="text" id="student_name" name="student_name" class="form-control" required value="{{ student.student_name or student.Student_Name or '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="registration_number">Registration Number (Immutable)</label>
+          <input type="text" id="registration_number" name="registration_number" class="form-control" readonly value="{{ student.registration_number or student.Registration_Number or '' }}" style="opacity: 0.7; cursor: not-allowed;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="department">Department *</label>
+          <input type="text" id="department" name="department" class="form-control" required value="{{ student.department or student.Department or '' }}" list="deptOptions">
+          <datalist id="deptOptions">
+            <option value="CSE">
+            <option value="IT">
+            <option value="ECE">
+            <option value="EEE">
+            <option value="MECH">
+            <option value="CIVIL">
+            <option value="DCIoT">
+            <option value="DMT">
+            <option value="DME">
+            <option value="DRA">
+          </datalist>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="year">Year *</label>
+          <select id="year" name="year" class="form-control form-select" required>
+            {% set cur_year = student.year or student.Year or '' %}
+            <option value="1ST YEAR" {% if cur_year == '1ST YEAR' %}selected{% endif %}>1ST YEAR</option>
+            <option value="2ND YEAR" {% if cur_year == '2ND YEAR' %}selected{% endif %}>2ND YEAR</option>
+            <option value="3RD YEAR" {% if cur_year == '3RD YEAR' %}selected{% endif %}>3RD YEAR</option>
+            <option value="4TH YEAR" {% if cur_year == '4TH YEAR' %}selected{% endif %}>4TH YEAR</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="phone_number">Phone Number *</label>
+          <input type="tel" id="phone_number" name="phone_number" class="form-control" required pattern="[0-9]{10}" maxlength="10" value="{{ student.phone_number or student.Phone_Number or '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="laptop_name">Laptop Brand / Name *</label>
+          <input type="text" id="laptop_name" name="laptop_name" class="form-control" required value="{{ student.laptop_name or student.Laptop_Name or '' }}">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 16px;">
+        <label class="form-label" for="laptop_model_number">Laptop Model Number *</label>
+        <input type="text" id="laptop_model_number" name="laptop_model_number" class="form-control" required value="{{ student.laptop_model_number or student.Laptop_Model_Number or '' }}">
+      </div>
+
+
+      <div class="form-actions" style="display: flex; gap: 12px; margin-top: 24px;">
+        <button type="submit" class="btn btn-primary">Update & Regenerate QR</button>
+        <a href="/admin/students" class="btn btn-outline">Cancel</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+{% endblock %}

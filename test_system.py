@@ -358,13 +358,96 @@ def run_tests():
             os.environ['SECRET_KEY'] = old_sk
     print("  --> PASS: Missing SECRET_KEY strictly raises RuntimeError without insecure fallback.")
 
+    # ----------------------------------------------------
+    # TEST 15: STUDENT DEACTIVATION LIFECYCLE & HISTORICAL PRESERVATION
+    # ----------------------------------------------------
+    print("\n[TEST 15] Student Deactivation Lifecycle & Historical Preservation...")
+    deact_reg = "DEACT999"
+    execute_command("DELETE FROM gate_records WHERE registration_number_snapshot = :r", {"r": deact_reg})
+    execute_command("DELETE FROM students WHERE registration_number = :r", {"r": deact_reg})
+
+    # Step 1: Register student
+    admin_client.post('/admin/students/add', data={
+        'student_name': 'Divya Nair',
+        'registration_number': deact_reg,
+        'department': 'ELECTRONICS',
+        'year': '2ND YEAR',
+        'phone_number': '9845012345',
+        'laptop_name': 'LENOVO THINKPAD',
+        'laptop_model_number': 'T14-GEN3'
+    })
+
+    deact_student = execute_one("SELECT * FROM students WHERE registration_number = :r", {"r": deact_reg})
+    assert deact_student is not None, "Deact test student not created"
+    deact_payload = QRService.build_payload(deact_student)
+
+    # Step 2: Student enters campus (status becomes INSIDE)
+    res_entry = sec_client.post('/api/scan', json={"qr_data": json.dumps(deact_payload)})
+    assert res_entry.status_code == 200, f"Entry scan failed: {res_entry.get_json()}"
+    assert res_entry.get_json()['status'] == 'INSIDE'
+    deact_record_id = res_entry.get_json()['record_id']
+
+    # Step 3: Admin deactivates student
+    res_deact = admin_client.post(f'/admin/students/deactivate/{deact_reg}', headers={'X-Requested-With': 'XMLHttpRequest'})
+    assert res_deact.status_code == 200, f"Deactivation request failed: {res_deact.get_json()}"
+    deact_data = res_deact.get_json()
+    assert deact_data['success'] is True, "Deactivation returned success=False"
+
+    # Step 4: Verify student is deleted from active students registry
+    student_check = execute_one("SELECT * FROM students WHERE registration_number = :r", {"r": deact_reg})
+    assert student_check is None, "Student still present in active students table after deactivation"
+
+    # Step 5: Verify student does NOT appear in active students list API
+    res_studs = admin_client.get(f'/api/students?search={deact_reg}')
+    assert res_studs.status_code == 200
+    studs_data = res_studs.get_json()
+    student_list = studs_data.get('students', []) if isinstance(studs_data, dict) else studs_data
+    matching_students = [s for s in student_list if s.get('registration_number') == deact_reg or s.get('Registration_Number') == deact_reg]
+    assert len(matching_students) == 0, "Deactivated student still returned in /api/students"
+
+    # Step 6: Verify active visit was automatically closed (status = 'OUT' with exit_time)
+    closed_visit = execute_one("SELECT * FROM gate_records WHERE record_id = :rid", {"rid": deact_record_id})
+    assert closed_visit is not None, "Gate record was deleted when student was deactivated"
+    assert closed_visit['status'] == 'OUT', f"Active visit status not closed to OUT, got {closed_visit['status']}"
+    assert closed_visit['exit_time'] is not None, "Active visit exit_time was not stamped"
+    assert closed_visit['student_id'] is None, "student_id was not set to NULL via ON DELETE SET NULL"
+
+    # Step 7: Verify snapshots are 100% preserved in gate_records
+    assert closed_visit['student_name_snapshot'] == 'Divya Nair'
+    assert closed_visit['registration_number_snapshot'] == deact_reg
+    assert closed_visit['laptop_name_snapshot'] == 'LENOVO THINKPAD'
+    assert closed_visit['laptop_model_number_snapshot'] == 'T14-GEN3'
+
+    # Step 8: Verify old QR code scan is rejected
+    res_old_qr = sec_client.post('/api/scan', json={"qr_data": json.dumps(deact_payload)})
+    assert res_old_qr.status_code == 404, f"Old QR scan should return 404, got {res_old_qr.status_code}: {res_old_qr.get_json()}"
+    assert "deactivated" in res_old_qr.get_json()['error'].lower() or "not found" in res_old_qr.get_json()['error'].lower()
+
+    # Step 9: Verify re-registration of the same registration_number is now allowed
+    res_re_reg = admin_client.post('/admin/students/add', data={
+        'student_name': 'Divya Nair (Re-enrolled)',
+        'registration_number': deact_reg,
+        'department': 'ELECTRONICS',
+        'year': '3RD YEAR',
+        'phone_number': '9845099999',
+        'laptop_name': 'APPLE MACBOOK AIR',
+        'laptop_model_number': 'M3-13'
+    }, follow_redirects=False)
+    assert res_re_reg.status_code == 302, f"Re-registration failed: {res_re_reg.status_code}"
+
+    re_registered = execute_one("SELECT * FROM students WHERE registration_number = :r", {"r": deact_reg})
+    assert re_registered is not None, "Re-registered student not found"
+    assert re_registered['student_name'] == 'Divya Nair (Re-enrolled)'
+    assert re_registered['laptop_name'] == 'APPLE MACBOOK AIR'
+    print("  --> PASS: Student deactivated, active visit closed, history preserved, old QR invalidated, and re-registration confirmed.")
+
     # Cleanup test data
-    for r in [test_reg, poll_reg, concur_reg]:
+    for r in [test_reg, poll_reg, concur_reg, deact_reg]:
         execute_command("DELETE FROM gate_records WHERE registration_number_snapshot = :r", {"r": r})
         execute_command("DELETE FROM students WHERE registration_number = :r", {"r": r})
 
     print("\n==========================================================")
-    print("  ALL 14 AUDIT & HARDENING TESTS PASSED! (100% COMPLETE)  ")
+    print("  ALL 15 PRODUCTION & DEACTIVATION TESTS PASSED! (100%)    ")
     print("==========================================================\n")
 
 if __name__ == '__main__':

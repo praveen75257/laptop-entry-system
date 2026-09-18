@@ -1,90 +1,85 @@
 {% extends "admin/base_admin.html" %}
-{% block page_title %}Dashboard Overview{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 {% block page_content %}
 
 <!-- Quick Actions Bar -->
 <div class="d-flex gap-2 mb-4 flex-wrap align-items-center justify-content-between">
   <div class="d-flex gap-2 flex-wrap">
     <a href="/admin/students/add" class="btn btn-primary">
-      <i class="bi bi-person-plus-fill me-1"></i> Add Student
+      <i class="bi bi-person-plus-fill"></i> Add Student
     </a>
     <a href="/admin/students" class="btn btn-secondary">
-      <i class="bi bi-people-fill me-1"></i> Student Directory
+      <i class="bi bi-people-fill"></i> Students
     </a>
     <a href="/admin/records" class="btn btn-outline">
-      <i class="bi bi-journal-text me-1"></i> Gate Records
+      <i class="bi bi-journal-text"></i> Gate Records
     </a>
   </div>
-
   <div class="d-flex align-items-center gap-2">
-    <span class="badge" style="background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); font-size: 0.85rem; padding: 6px 12px; border-radius: 20px;">
-      <i class="bi bi-check-circle-fill me-1"></i> PostgreSQL Online &amp; Primary
+    <span class="badge badge-success" style="font-size: 0.78rem; padding: 5px 12px;">
+      <i class="bi bi-check-circle-fill me-1" style="font-size: 0.7rem;"></i> PostgreSQL Online
     </span>
   </div>
 </div>
 
 <!-- Statistics Cards -->
-<div class="grid grid-4" style="margin-bottom: 24px;">
+<div class="grid grid-4" style="margin-bottom: 1.5rem;">
+
   <!-- Total Students -->
-  <div class="stat-card" style="border-left: 4px solid var(--accent-blue);">
-    <div class="stat-icon" style="color: var(--accent-blue);">
-      <i class="bi bi-mortarboard-fill fs-2"></i>
+  <div class="stat-card stat-card-blue">
+    <div class="stat-icon" style="background: rgba(56,189,248,0.12); color: var(--accent-blue);">
+      <i class="bi bi-mortarboard-fill"></i>
     </div>
-    <div class="stat-details">
-      <div class="stat-value" id="totalStudents">{{ stats.total_students }}</div>
-      <div class="stat-label">TOTAL STUDENTS</div>
-    </div>
+    <div class="stat-value" id="totalStudents">{{ stats.total_students }}</div>
+    <div class="stat-label">Total Students</div>
   </div>
 
   <!-- Currently Inside -->
-  <div class="stat-card" style="border-left: 4px solid var(--success);">
-    <div class="stat-icon" style="color: var(--success);">
-      <i class="bi bi-door-open-fill fs-2"></i>
+  <div class="stat-card stat-card-green">
+    <div class="stat-icon" style="background: rgba(52,211,153,0.12); color: var(--success);">
+      <i class="bi bi-door-open-fill"></i>
     </div>
-    <div class="stat-details">
-      <div class="stat-value" id="currentlyInside">{{ stats.currently_inside }}</div>
-      <div class="stat-label">CURRENTLY INSIDE</div>
-    </div>
+    <div class="stat-value" id="currentlyInside">{{ stats.currently_inside }}</div>
+    <div class="stat-label">Currently Inside</div>
   </div>
 
   <!-- Today's Entries -->
-  <div class="stat-card" style="border-left: 4px solid var(--accent-teal);">
-    <div class="stat-icon" style="color: var(--accent-teal);">
-      <i class="bi bi-box-arrow-in-right fs-2"></i>
+  <div class="stat-card stat-card-teal">
+    <div class="stat-icon" style="background: rgba(45,212,191,0.12); color: var(--accent-teal);">
+      <i class="bi bi-box-arrow-in-right"></i>
     </div>
-    <div class="stat-details">
-      <div class="stat-value" id="todayEntries">{{ stats.today_entries }}</div>
-      <div class="stat-label">TODAY'S ENTRIES</div>
-    </div>
+    <div class="stat-value" id="todayEntries">{{ stats.today_entries }}</div>
+    <div class="stat-label">Today's Entries</div>
   </div>
 
   <!-- Today's Exits -->
-  <div class="stat-card" style="border-left: 4px solid var(--accent-purple);">
-    <div class="stat-icon" style="color: var(--accent-purple);">
-      <i class="bi bi-box-arrow-right fs-2"></i>
+  <div class="stat-card stat-card-purple">
+    <div class="stat-icon" style="background: rgba(167,139,250,0.12); color: var(--accent-purple);">
+      <i class="bi bi-box-arrow-right"></i>
     </div>
-    <div class="stat-details">
-      <div class="stat-value" id="todayExits">{{ stats.today_exits }}</div>
-      <div class="stat-label">TODAY'S EXITS</div>
-    </div>
+    <div class="stat-value" id="todayExits">{{ stats.today_exits }}</div>
+    <div class="stat-label">Today's Exits</div>
   </div>
 </div>
 
-<!-- Grid Layout: Currently Inside & Recent Activity -->
-<div class="grid grid-2" style="margin-bottom: 24px; gap: 20px;">
+<!-- Grid: Currently Inside + Recent Activity -->
+<div class="grid grid-2" style="gap: 1.25rem;">
+
   <!-- Currently Inside Table -->
   <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h3 style="font-size: 1.1rem; margin: 0;"><i class="bi bi-person-badge me-2 text-success"></i>Currently Inside Campus</h3>
-      <a href="/admin/records?status=INSIDE" class="btn btn-sm btn-outline" style="font-size: 0.75rem;">View All</a>
+    <div class="card-header">
+      <h3 style="display: flex; align-items: center; gap: 8px;">
+        <i class="bi bi-person-badge" style="color: var(--success);"></i>
+        Currently Inside
+      </h3>
+      <a href="/admin/records" class="btn btn-sm btn-outline">View All</a>
     </div>
     <div class="card-body p-0">
-      <div class="table-container" style="max-height: 400px; overflow-y: auto;">
-        <table class="table mb-0">
+      <div class="table-container" style="max-height: 380px; overflow-y: auto;">
+        <table>
           <thead>
             <tr>
-              <th>Student Name</th>
-              <th>Reg No</th>
+              <th>Student</th>
               <th>Dept</th>
               <th>Laptop</th>
               <th>Entry Time</th>
@@ -94,15 +89,22 @@
             {% if currently_inside_list %}
               {% for s in currently_inside_list %}
               <tr>
-                <td><strong>{{ s.student_name_snapshot }}</strong></td>
-                <td><code>{{ s.registration_number_snapshot }}</code></td>
-                <td>{{ s.department_snapshot }}</td>
-                <td>{{ s.laptop_name_snapshot }}</td>
-                <td><span class="badge badge-inside">{{ s.entry_time_fmt }}</span></td>
+                <td>
+                  <div style="font-weight: 600; color: var(--text-primary);">{{ s.student_name_snapshot }}</div>
+                  <code style="font-size: 0.75rem;">{{ s.registration_number_snapshot }}</code>
+                </td>
+                <td style="color: var(--text-secondary);">{{ s.department_snapshot }}</td>
+                <td style="color: var(--text-secondary);">{{ s.laptop_name_snapshot }}</td>
+                <td>
+                  <span class="ts-chip ts-chip-entry">
+                    <i class="bi bi-clock" style="font-size: 0.7rem;"></i>
+                    {{ s.entry_time_fmt }}
+                  </span>
+                </td>
               </tr>
               {% endfor %}
             {% else %}
-              <tr><td colspan="5" class="text-center py-4 text-secondary">No students currently recorded inside campus.</td></tr>
+              <tr><td colspan="4" class="empty-state" style="padding: 2rem;">No students currently inside.</td></tr>
             {% endif %}
           </tbody>
         </table>
@@ -112,17 +114,21 @@
 
   <!-- Recent Activity Table -->
   <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h3 style="font-size: 1.1rem; margin: 0;"><i class="bi bi-activity me-2 text-primary"></i>Recent Movements Activity</h3>
-      <a href="/admin/records" class="btn btn-sm btn-outline" style="font-size: 0.75rem;">All Records</a>
+    <div class="card-header">
+      <h3 style="display: flex; align-items: center; gap: 8px;">
+        <i class="bi bi-activity" style="color: var(--accent-blue);"></i>
+        Recent Activity
+      </h3>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 0.72rem; color: var(--text-muted);">Updated <span id="lastUpdatedTime">–</span></span>
+      </div>
     </div>
     <div class="card-body p-0">
-      <div class="table-container" style="max-height: 400px; overflow-y: auto;">
-        <table class="table mb-0">
+      <div class="table-container" style="max-height: 380px; overflow-y: auto;">
+        <table>
           <thead>
             <tr>
               <th>Student</th>
-              <th>Reg No</th>
               <th>Status</th>
               <th>Time</th>
             </tr>
@@ -131,8 +137,10 @@
             {% if recent_activity %}
               {% for r in recent_activity %}
               <tr>
-                <td><strong>{{ r.student_name_snapshot }}</strong></td>
-                <td><code>{{ r.registration_number_snapshot }}</code></td>
+                <td>
+                  <div style="font-weight: 600; color: var(--text-primary);">{{ r.student_name_snapshot }}</div>
+                  <code style="font-size: 0.75rem;">{{ r.registration_number_snapshot }}</code>
+                </td>
                 <td>
                   <span class="badge {% if r.status == 'INSIDE' %}badge-inside{% else %}badge-outside{% endif %}">
                     {{ r.status }}
@@ -140,15 +148,15 @@
                 </td>
                 <td>
                   {% if r.status == 'INSIDE' %}
-                    <span class="text-success">{{ r.entry_time_fmt }}</span>
+                    <span class="ts-chip ts-chip-entry">{{ r.entry_time_fmt }}</span>
                   {% else %}
-                    <span class="text-warning">{{ r.exit_time_fmt }}</span>
+                    <span class="ts-chip ts-chip-exit">{{ r.exit_time_fmt }}</span>
                   {% endif %}
                 </td>
               </tr>
               {% endfor %}
             {% else %}
-              <tr><td colspan="4" class="text-center py-4 text-secondary">No gate movements recorded yet today.</td></tr>
+              <tr><td colspan="3" class="empty-state" style="padding: 2rem;">No gate movements yet today.</td></tr>
             {% endif %}
           </tbody>
         </table>
@@ -163,6 +171,10 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   loadDashboardStats();
+  setInterval(loadDashboardStats, 2500);
 });
 </script>
 {% endblock %}
+
+
+

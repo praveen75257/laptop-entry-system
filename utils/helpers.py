@@ -13,29 +13,42 @@ def get_ist_now():
     tz = pytz.timezone(Config.TIMEZONE)
     return datetime.now(tz)
 
-def format_date(dt=None):
-    """Format datetime to DD-MM-YYYY."""
-    if dt is None:
-        dt = get_ist_now()
-    elif isinstance(dt, str):
-        return dt
-    return dt.strftime('%d-%m-%Y')
-
 def format_time(dt=None):
-    """Format datetime to HH:MM:SS AM/PM."""
+    """Format datetime to HH:MM:SS AM/PM in IST."""
+    tz = pytz.timezone(Config.TIMEZONE)
     if dt is None:
         dt = get_ist_now()
     elif isinstance(dt, str):
         return dt
+    # Convert UTC-aware or any tz-aware datetime to IST before formatting
+    if hasattr(dt, 'tzinfo') and dt.tzinfo is not None:
+        dt = dt.astimezone(tz)
     return dt.strftime('%I:%M:%S %p')
 
+def format_date(dt=None):
+    """Format datetime to DD-MM-YYYY in IST."""
+    tz = pytz.timezone(Config.TIMEZONE)
+    if dt is None:
+        dt = get_ist_now()
+    elif isinstance(dt, str):
+        return dt
+    # Convert to IST before formatting
+    if hasattr(dt, 'tzinfo') and dt.tzinfo is not None:
+        dt = dt.astimezone(tz)
+    return dt.strftime('%d-%m-%Y')
+
 def format_display_datetime(dt=None):
-    """Format datetime to: 16 Sep 2026, 09:32 PM"""
+    """Format datetime to: 16 Sep 2026, 09:32 PM in IST."""
+    tz = pytz.timezone(Config.TIMEZONE)
     if dt is None:
         dt = get_ist_now()
     if isinstance(dt, str):
         return dt
+    # Convert to IST before formatting
+    if hasattr(dt, 'tzinfo') and dt.tzinfo is not None:
+        dt = dt.astimezone(tz)
     return dt.strftime('%d %b %Y, %I:%M %p')
+
 
 def log_system_event(action, details=None, username=None):
     """Record an important event into the system_logs table."""

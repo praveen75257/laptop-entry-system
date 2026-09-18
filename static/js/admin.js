@@ -23,15 +23,22 @@ function loadDashboardStats() {
       const tbodyInside = document.getElementById('currentlyInsideTable');
       if (tbodyInside && data.inside_list) {
         if (data.inside_list.length === 0) {
-          tbodyInside.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-secondary">No students currently recorded inside campus.</td></tr>';
+          tbodyInside.innerHTML = '<tr><td colspan="4" class="empty-state" style="padding: 2rem;">No students currently inside.</td></tr>';
         } else {
           tbodyInside.innerHTML = data.inside_list.map(s => `
             <tr>
-              <td><strong>${s.student_name_snapshot || ''}</strong></td>
-              <td><code>${s.registration_number_snapshot || ''}</code></td>
-              <td>${s.department_snapshot || ''}</td>
-              <td>${s.laptop_name_snapshot || ''}</td>
-              <td><span class="badge badge-inside">${s.entry_time_fmt || ''}</span></td>
+              <td>
+                <div style="font-weight: 600; color: var(--text-primary);">${s.student_name_snapshot || ''}</div>
+                <code style="font-size: 0.75rem;">${s.registration_number_snapshot || ''}</code>
+              </td>
+              <td style="color: var(--text-secondary);">${s.department_snapshot || ''}</td>
+              <td style="color: var(--text-secondary);">${s.laptop_name_snapshot || ''}</td>
+              <td>
+                <span class="ts-chip ts-chip-entry">
+                  <i class="bi bi-clock" style="font-size: 0.7rem;"></i>
+                  ${s.entry_time_fmt || ''}
+                </span>
+              </td>
             </tr>
           `).join('');
         }
@@ -41,26 +48,29 @@ function loadDashboardStats() {
       const tbodyRecent = document.getElementById('recentActivity');
       if (tbodyRecent && data.recent_activity) {
         if (data.recent_activity.length === 0) {
-          tbodyRecent.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-secondary">No gate movements recorded yet today.</td></tr>';
+          tbodyRecent.innerHTML = '<tr><td colspan="3" class="empty-state" style="padding: 2rem;">No gate movements yet today.</td></tr>';
         } else {
           tbodyRecent.innerHTML = data.recent_activity.map(r => `
             <tr>
-              <td><strong>${r.student_name_snapshot || ''}</strong></td>
-              <td><code>${r.registration_number_snapshot || ''}</code></td>
+              <td>
+                <div style="font-weight: 600; color: var(--text-primary);">${r.student_name_snapshot || ''}</div>
+                <code style="font-size: 0.75rem;">${r.registration_number_snapshot || ''}</code>
+              </td>
               <td>
                 <span class="badge ${r.status === 'INSIDE' ? 'badge-inside' : 'badge-outside'}">
                   ${r.status}
                 </span>
               </td>
               <td>
-                ${r.status === 'INSIDE' 
-                  ? `<span class="text-success">${r.entry_time_fmt || ''}</span>` 
-                  : `<span class="text-warning">${r.exit_time_fmt || ''}</span>`}
+                ${r.status === 'INSIDE'
+                  ? `<span class="ts-chip ts-chip-entry">${r.entry_time_fmt || ''}</span>`
+                  : `<span class="ts-chip ts-chip-exit">${r.exit_time_fmt || ''}</span>`}
               </td>
             </tr>
           `).join('');
         }
       }
+
     })
     .catch(err => console.error('Failed to load dashboard stats:', err));
 }
@@ -174,22 +184,34 @@ function loadRecords(filters = {}) {
 
         return `
           <tr>
-            <td style="white-space: nowrap; font-size: 0.85rem;">${r.date_fmt || ''}</td>
-            <td style="white-space: nowrap;"><span class="badge badge-inside" style="font-size: 0.8rem;">${r.entry_time_fmt || ''}</span></td>
-            <td style="white-space: nowrap;">${r.exit_time_fmt !== '—' ? `<span class="badge badge-outside" style="font-size: 0.8rem;">${r.exit_time_fmt}</span>` : '<span class="text-muted">—</span>'}</td>
+            <td style="white-space: nowrap; font-size: 0.82rem; color: var(--text-secondary);">${r.date_fmt || ''}</td>
+            <td style="white-space: nowrap;">
+              <span class="ts-chip ts-chip-entry">${r.entry_time_fmt || ''}</span>
+            </td>
+            <td style="white-space: nowrap;">
+              ${r.exit_time_fmt !== '—'
+                ? `<span class="ts-chip ts-chip-exit">${r.exit_time_fmt}</span>`
+                : `<span class="ts-chip-null">—</span>`}
+            </td>
             <td><span class="badge ${badgeClass}">${r.status || ''}</span></td>
             <td><strong>${r.student_name_snapshot || ''}</strong></td>
             <td><code>${r.registration_number_snapshot || ''}</code></td>
-            <td>${r.department_snapshot || ''}</td>
-            <td>${r.year_snapshot || ''}</td>
-            <td style="white-space: nowrap;">${r.phone_number_snapshot || ''}</td>
+            <td style="color: var(--text-secondary);">${r.department_snapshot || ''}</td>
+            <td style="color: var(--text-secondary);">${r.year_snapshot || ''}</td>
+            <td style="white-space: nowrap; color: var(--text-secondary);">${r.phone_number_snapshot || ''}</td>
             <td>${r.laptop_name_snapshot || ''}</td>
-            <td><small class="text-secondary">${r.laptop_model_number_snapshot || ''}</small></td>
-            <td><span class="badge badge-info" style="font-size: 0.75rem;">v${r.qr_version || 1}</span></td>
-            <td><code title="${r.record_id}" style="cursor: pointer;" onclick="navigator.clipboard.writeText('${r.record_id}'); showToast('Copied Record ID', 'info');">${shortId}...</code></td>
+            <td><small style="color: var(--text-muted);">${r.laptop_model_number_snapshot || ''}</small></td>
+            <td><span class="badge badge-info" style="font-size: 0.7rem;">v${r.qr_version || 1}</span></td>
+            <td>
+              <code title="${r.record_id}" style="cursor: pointer; font-size: 0.75rem;"
+                onclick="navigator.clipboard.writeText('${r.record_id}'); showToast('Copied Record ID', 'info');">
+                ${shortId}…
+              </code>
+            </td>
           </tr>
         `;
       }).join('');
+
     })
     .catch(err => {
       console.error('Failed to load records:', err);

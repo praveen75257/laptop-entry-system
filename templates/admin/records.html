@@ -1,94 +1,84 @@
 {% extends "admin/base_admin.html" %}
-{% block page_title %}Gate Entry/Exit Records{% endblock %}
+{% block page_title %}Gate Records{% endblock %}
 {% block page_content %}
 
-<!-- Header & Live Status Bar -->
+<!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
   <div>
-    <h2 style="font-size: 1.35rem; font-weight: 700; margin: 0;">RECORDS</h2>
-    <span style="font-size: 0.9rem; color: var(--text-secondary);" id="currentFilterDateLabel">Gate Activity Log</span>
+    <h2 style="font-size: 1.2rem; font-weight: 700; margin: 0; letter-spacing: -0.01em;">Gate Records</h2>
+    <span style="font-size: 0.82rem; color: var(--text-secondary);" id="currentFilterDateLabel">Loading activity log...</span>
   </div>
-  <div class="d-flex align-items-center gap-3">
-    <div id="liveIndicator" style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); padding: 4px 10px; border-radius: 20px; color: #4ade80;">
-      <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; animation: pulse 1.5s infinite;"></span>
-      <strong>LIVE</strong> &bull; <span id="lastUpdatedTime">Syncing...</span>
+  <div class="d-flex align-items-center gap-2">
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.25); padding: 4px 12px; border-radius: 999px; color: var(--success);">
+      <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--success); display: inline-block; animation: pulse 1.5s infinite;"></span>
+      <strong style="font-size: 0.72rem; letter-spacing: 0.06em;">LIVE</strong>
+      <span style="color: var(--text-secondary);">·</span>
+      <span id="lastUpdatedTime" style="color: var(--text-secondary);">Syncing...</span>
     </div>
   </div>
 </div>
 
-<!-- Date Tabs & Filter Bar -->
-<div class="card mb-3">
-  <div class="card-body p-3">
-    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
-      <!-- Quick Date Buttons -->
-      <div class="btn-group" role="group">
-        <button type="button" class="btn btn-sm btn-outline-primary active" id="btnToday" onclick="setDateFilter('today')">Today</button>
-        <button type="button" class="btn btn-sm btn-outline-primary" id="btnYesterday" onclick="setDateFilter('yesterday')">Yesterday</button>
-      </div>
+<!-- Filter Bar (Glass) -->
+<div class="filter-bar-glass">
+  <div class="filter-bar">
+    <!-- Quick date buttons -->
+    <button type="button" class="btn btn-sm btn-filter-active" id="btnToday" onclick="setDateFilter('today')">Today</button>
+    <button type="button" class="btn btn-sm btn-outline" id="btnYesterday" onclick="setDateFilter('yesterday')">Yesterday</button>
 
-      <!-- Custom Date Picker -->
-      <div class="d-flex align-items-center gap-2">
-        <label for="filterDate" class="mb-0 text-secondary" style="font-size: 0.85rem;">Date:</label>
-        <input type="date" id="filterDate" class="form-control form-control-sm" style="width: 150px;" value="{{ default_date }}" onchange="applyFilters()">
-      </div>
-
-      <!-- Search Input -->
-      <div class="search-bar" style="flex: 1; max-width: 320px; min-width: 220px;">
-        <i class="bi bi-search"></i>
-        <input type="text" id="filterSearch" placeholder="Search student / reg no / laptop..." onkeyup="debounceSearch()">
-      </div>
-
-      <!-- Status Dropdown -->
-      <div class="d-flex align-items-center gap-2">
-        <label for="filterStatus" class="mb-0 text-secondary" style="font-size: 0.85rem;">Status:</label>
-        <select id="filterStatus" class="form-control form-select form-select-sm" style="width: 120px;" onchange="applyFilters()">
-          <option value="">All</option>
-          <option value="INSIDE">INSIDE</option>
-          <option value="OUT">OUT</option>
-        </select>
-      </div>
-
-      <button onclick="applyFilters()" class="btn btn-sm btn-primary">
-        <i class="bi bi-funnel me-1"></i> Filter
-      </button>
+    <!-- Date picker -->
+    <div class="d-flex align-items-center gap-2">
+      <label for="filterDate" class="mb-0" style="font-size: 0.8rem; white-space: nowrap;">Date:</label>
+      <input type="date" id="filterDate" class="form-control" style="width: 150px;" value="{{ default_date }}" onchange="applyFilters()">
     </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <i class="bi bi-search"></i>
+      <input type="text" id="filterSearch" placeholder="Search student, reg no, laptop..." onkeyup="debounceSearch()">
+    </div>
+
+    <!-- Status -->
+    <div class="d-flex align-items-center gap-2">
+      <label for="filterStatus" class="mb-0" style="font-size: 0.8rem; white-space: nowrap;">Status:</label>
+      <select id="filterStatus" class="form-control form-select" style="width: 120px;" onchange="applyFilters()">
+        <option value="">All</option>
+        <option value="INSIDE">INSIDE</option>
+        <option value="OUT">OUT</option>
+      </select>
+    </div>
+
+    <button onclick="applyFilters()" class="btn btn-sm btn-primary">
+      <i class="bi bi-funnel"></i> Filter
+    </button>
   </div>
 </div>
 
-<!-- Statistics Cards for Selected Date -->
-<div class="grid grid-4 mb-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px;">
-  <div class="stat-card p-2" style="border-left: 3px solid var(--accent-blue);">
-    <div class="stat-details">
-      <div class="stat-value" id="statTotal" style="font-size: 1.4rem;">0</div>
-      <div class="stat-label" style="font-size: 0.72rem;">TOTAL SCANS</div>
-    </div>
+<!-- Summary Stats -->
+<div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 1.25rem;">
+  <div class="stat-card stat-card-blue" style="padding: 0.85rem;">
+    <div class="stat-value" id="statTotal" style="font-size: 1.5rem;">0</div>
+    <div class="stat-label">Total Scans</div>
   </div>
-  <div class="stat-card p-2" style="border-left: 3px solid var(--success);">
-    <div class="stat-details">
-      <div class="stat-value" id="statInside" style="font-size: 1.4rem;">0</div>
-      <div class="stat-label" style="font-size: 0.72rem;">INSIDE</div>
-    </div>
+  <div class="stat-card stat-card-green" style="padding: 0.85rem;">
+    <div class="stat-value" id="statInside" style="font-size: 1.5rem;">0</div>
+    <div class="stat-label">Inside</div>
   </div>
-  <div class="stat-card p-2" style="border-left: 3px solid var(--warning);">
-    <div class="stat-details">
-      <div class="stat-value" id="statOut" style="font-size: 1.4rem;">0</div>
-      <div class="stat-label" style="font-size: 0.72rem;">OUT</div>
-    </div>
+  <div class="stat-card stat-card-orange" style="padding: 0.85rem;">
+    <div class="stat-value" id="statOut" style="font-size: 1.5rem;">0</div>
+    <div class="stat-label">Out</div>
   </div>
-  <div class="stat-card p-2" style="border-left: 3px solid var(--accent-purple);">
-    <div class="stat-details">
-      <div class="stat-value" id="statEntries" style="font-size: 1.4rem;">0</div>
-      <div class="stat-label" style="font-size: 0.72rem;">TOTAL VISITS</div>
-    </div>
+  <div class="stat-card stat-card-purple" style="padding: 0.85rem;">
+    <div class="stat-value" id="statEntries" style="font-size: 1.5rem;">0</div>
+    <div class="stat-label">Total Visits</div>
   </div>
 </div>
 
-<!-- Table Card -->
+<!-- Records Table Card -->
 <div class="card">
   <div class="card-body p-0">
     <div class="table-container" style="max-height: 600px; overflow-y: auto;">
-      <table class="table mb-0" style="width: 100%;">
-        <thead style="position: sticky; top: 0; background: var(--bg-secondary); z-index: 2;">
+      <table style="width: 100%;">
+        <thead>
           <tr>
             <th>Date</th>
             <th>Entry Time</th>
@@ -96,17 +86,17 @@
             <th>Status</th>
             <th>Student Name</th>
             <th>Reg No</th>
-            <th>Department</th>
+            <th>Dept</th>
             <th>Year</th>
-            <th>Phone No</th>
-            <th>Laptop Name</th>
-            <th>Laptop Model</th>
+            <th>Phone</th>
+            <th>Laptop</th>
+            <th>Model</th>
             <th>QR Ver</th>
             <th>Record ID</th>
           </tr>
         </thead>
         <tbody id="recordsTableBody">
-          <tr><td colspan="13" class="loading-text text-center py-4">Connecting to live PostgreSQL stream...</td></tr>
+          <tr><td colspan="13" class="empty-state">Connecting to live database...</td></tr>
         </tbody>
       </table>
     </div>
@@ -115,9 +105,8 @@
 
 <style>
 @keyframes pulse {
-  0% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
-  100% { opacity: 1; transform: scale(1); }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.8); }
 }
 </style>
 {% endblock %}
@@ -131,7 +120,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
-
 
 
 

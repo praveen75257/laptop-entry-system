@@ -22,13 +22,15 @@
 <div class="filter-bar-glass">
   <div class="filter-bar">
     <!-- Quick date buttons -->
-    <button type="button" class="btn btn-sm btn-filter-active" id="btnToday" onclick="setDateFilter('today')">Today</button>
-    <button type="button" class="btn btn-sm btn-outline" id="btnYesterday" onclick="setDateFilter('yesterday')">Yesterday</button>
+    <div class="d-flex align-items-center gap-1">
+      <button type="button" class="btn btn-sm btn-filter-active" id="btnToday" onclick="setDateFilter('today')">Today</button>
+      <button type="button" class="btn btn-sm btn-outline" id="btnYesterday" onclick="setDateFilter('yesterday')">Yesterday</button>
+    </div>
 
     <!-- Date picker -->
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2 filter-date-field">
       <label for="filterDate" class="mb-0" style="font-size: 0.8rem; white-space: nowrap;">Date:</label>
-      <input type="date" id="filterDate" class="form-control" style="width: 150px;" value="{{ default_date }}" onchange="applyFilters()">
+      <input type="date" id="filterDate" class="form-control" value="{{ default_date }}" onchange="applyFilters()">
     </div>
 
     <!-- Search -->
@@ -38,9 +40,9 @@
     </div>
 
     <!-- Status -->
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2 filter-status-field">
       <label for="filterStatus" class="mb-0" style="font-size: 0.8rem; white-space: nowrap;">Status:</label>
-      <select id="filterStatus" class="form-control form-select" style="width: 120px;" onchange="applyFilters()">
+      <select id="filterStatus" class="form-control form-select" onchange="applyFilters()">
         <option value="">All</option>
         <option value="INSIDE">INSIDE</option>
         <option value="OUT">OUT</option>

@@ -2,189 +2,312 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Security Portal - Gate Entry/Exit Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Portal - CPAT Laptop Gate</title>
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Application Stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <style>
-    body.security-page {
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      margin: 0;
-    }
-    .security-topbar {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 18px; background: var(--glass-bg); backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100;
-    }
-    .security-tabs {
-      display: flex; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);
-    }
-    .sec-tab-btn {
-      flex: 1; padding: 14px 8px; text-align: center; font-weight: 700; font-size: 0.95rem;
-      background: none; border: none; color: var(--text-secondary); cursor: pointer;
-      border-bottom: 3px solid transparent; transition: all 0.2s ease;
-      letter-spacing: 0.5px;
-    }
-    .sec-tab-btn.active {
-      color: var(--accent-blue); border-bottom-color: var(--accent-blue); background: rgba(59,130,246,0.08);
-    }
-    .sec-content {
-      flex: 1; padding: 16px; max-width: 600px; width: 100%; margin: 0 auto; box-sizing: border-box;
-    }
-    .scanner-viewport {
-      background: #000; border-radius: 16px; overflow: hidden; position: relative;
-      border: 2px solid var(--accent-blue); box-shadow: 0 8px 24px rgba(59,130,246,0.25);
-      min-height: 300px; width: 100%;
-    }
-    #reader video {
-      width: 100% !important; border-radius: 14px; object-fit: cover;
-    }
-    .scan-guide {
-      text-align: center; color: var(--text-secondary); font-size: 0.88rem; margin-top: 6px; margin-bottom: 14px;
-    }
-    .result-card {
-      background: var(--bg-secondary); border-radius: 16px; padding: 20px;
-      border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      animation: slideUp 0.3s ease;
-    }
-    .http-warning-banner {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid var(--danger);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 16px;
-      color: #fca5a5;
-      font-size: 0.85rem;
-      line-height: 1.5;
-    }
-    .http-warning-banner strong {
-      color: #fff;
-    }
-  </style>
 </head>
 <body class="security-page">
 
-  <!-- Topbar -->
-  <div class="security-topbar">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <div style="width: 36px; height: 36px; background: rgba(20,184,166,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+  <!-- Compact Mobile-First Security Header -->
+  <header class="security-topbar" id="secHeader">
+    <div class="sec-brand-group">
+      <div class="sec-shield-icon">
+        <i class="bi bi-shield-lock-fill"></i>
       </div>
-      <div>
-        <h1 style="font-size: 1.1rem; font-weight: 700; margin: 0;">GATE SECURITY</h1>
-        <span style="font-size: 0.78rem; color: var(--text-secondary);">Logged in as: <strong>{{ session.get('user', 'security') }}</strong></span>
+      <div class="sec-brand-meta">
+        <div class="sec-brand-title">CPAT GATE</div>
+        <div class="sec-brand-user">
+          <span class="sec-user-name">{{ session.get('username') or session.get('user', 'security') }}</span>
+          <span class="sec-live-pill" id="headerLivePill">
+            <span class="sec-live-dot"></span>
+            <span>LIVE</span>
+          </span>
+        </div>
       </div>
     </div>
-    <a href="/logout" class="btn btn-outline btn-sm" style="padding: 6px 14px; font-size: 0.85rem;">Logout</a>
-  </div>
 
-  <!-- Navigation Tabs -->
-  <div class="security-tabs">
-    <button class="sec-tab-btn active" data-tab="scanner" onclick="switchSecTab('scanner')">
-      📷 SCAN QR
+    <div class="sec-header-actions">
+      <div class="sec-inside-badge" title="Students currently inside campus">
+        <i class="bi bi-door-open-fill"></i>
+        <span>Inside:</span>
+        <strong id="topbarInsideCount">{{ stats.currently_inside }}</strong>
+      </div>
+      <a href="/logout" class="btn btn-outline btn-sm sec-logout-btn" title="Sign out of security session">
+        <i class="bi bi-box-arrow-right"></i>
+        <span class="sec-logout-text">Logout</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs (Touch-First) -->
+  <nav class="security-tabs" role="tablist" aria-label="Security Navigation">
+    <button class="sec-tab-btn active" data-tab="scanner" onclick="switchSecTab('scanner')" role="tab" aria-selected="true" aria-controls="scannerTab">
+      <i class="bi bi-qr-code-scan"></i>
+      <span>SCANNER</span>
     </button>
-    <button class="sec-tab-btn" data-tab="log" onclick="switchSecTab('log')">
-      📋 TODAY'S LOG
+    <button class="sec-tab-btn" data-tab="log" onclick="switchSecTab('log')" role="tab" aria-selected="false" aria-controls="logTab">
+      <i class="bi bi-journal-text"></i>
+      <span>LOG SHEET</span>
     </button>
-    <button class="sec-tab-btn" data-tab="stats" onclick="switchSecTab('stats')">
-      📊 STATS
+    <button class="sec-tab-btn" data-tab="stats" onclick="switchSecTab('stats')" role="tab" aria-selected="false" aria-controls="statsTab">
+      <i class="bi bi-bar-chart-fill"></i>
+      <span>STATS</span>
     </button>
-  </div>
+  </nav>
 
   <!-- Main Content Area -->
-  <div class="sec-content">
+  <main class="sec-content">
 
-    <!-- Secure Context Warning (Shown if loaded over HTTP on Mobile LAN IP) -->
+    <!-- Insecure Context Banner (For Mobile LAN HTTP) -->
     <div id="secureContextBanner" class="http-warning-banner" style="display: none;">
-      <strong>⚠️ Camera Permission Alert (HTTP Insecure Context)</strong><br>
-      Mobile browsers (Android Chrome) require <strong>HTTPS</strong> to access the device camera over LAN IP.<br>
-      Please start the server with <code>python app.py --ssl</code> and access: <br>
-      <a id="httpsLink" href="#" style="color: #60a5fa; font-weight: bold; text-decoration: underline; word-break: break-all;"></a>
+      <strong>⚠️ Camera Permission Alert (HTTPS Required)</strong><br>
+      Mobile browsers require <strong>HTTPS</strong> to access the physical device camera.<br>
+      Access via your Vercel deployment URL or SSL proxy: <br>
+      <a id="httpsLink" href="#" target="_blank" rel="noopener noreferrer"></a>
     </div>
 
     <!-- TAB 1: SCANNER -->
-    <div id="scannerTab" class="tab-pane active">
-      <div style="text-align: center; margin-bottom: 12px;">
-        <div style="display: inline-block; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 20px; padding: 4px 16px; margin-bottom: 8px;">
-          <span style="font-size: 0.85rem; color: #4ade80; font-weight: 600;">
-            Currently Inside: <strong id="scannerInsideCount" style="font-size: 1.1rem; color: #fff;">{{ stats.currently_inside }}</strong>
-          </span>
+    <section id="scannerTab" class="sec-tab-pane active" role="tabpanel">
+      <div class="sec-scanner-header">
+        <div class="sec-status-pill">
+          <i class="bi bi-laptop"></i>
+          <span>Campus Gate Status:</span>
+          <strong id="scannerInsideCount">{{ stats.currently_inside }}</strong>
+          <span>Inside</span>
         </div>
-        <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0;">SCAN LAPTOP QR</h2>
-        <p class="scan-guide" style="margin-top: 2px;">Point camera directly at the student QR code pass</p>
+        <h2 class="sec-pane-heading">SCAN LAPTOP QR</h2>
+        <p class="scan-guide">Align camera with student QR pass for instant Entry or Exit registration</p>
       </div>
 
-
-      <!-- Camera Scanner Container -->
+      <!-- Camera Scanner Frame -->
       <div id="scannerContainer" class="scanner-viewport">
+        <!-- Laser Scan Animation Bar -->
+        <div class="scanner-laser" id="scannerLaser"></div>
+        <div class="scanner-corner corner-tl"></div>
+        <div class="scanner-corner corner-tr"></div>
+        <div class="scanner-corner corner-bl"></div>
+        <div class="scanner-corner corner-br"></div>
         <div id="reader" style="width: 100%;"></div>
       </div>
 
-      <!-- Result Display Card -->
-      <div id="scanResultCard" class="result-card" style="display: none; margin-top: 16px;">
-        <div id="resultBadgeContainer" style="text-align: center; margin-bottom: 16px;">
+      <!-- Scan Result Card -->
+      <div id="scanResultCard" class="result-card" style="display: none;">
+        <div id="resultBadgeContainer" class="text-center">
           <!-- Dynamically populated result badge -->
         </div>
 
-        <div id="resultDetails" style="font-size: 0.95rem; line-height: 1.6;">
+        <div id="resultDetails">
           <!-- Dynamically populated student details -->
         </div>
 
-        <button onclick="scanNext()" class="btn btn-primary btn-lg btn-block" id="scanNextBtn" style="margin-top: 20px; font-size: 1.05rem; padding: 14px; font-weight: 700;">
-          📷 SCAN NEXT STUDENT
+        <button onclick="scanNext()" class="btn btn-primary btn-block sec-scan-next-btn" id="scanNextBtn">
+          <i class="bi bi-camera-fill me-1"></i> SCAN NEXT STUDENT
         </button>
       </div>
+    </section>
 
-    </div>
-
-    <!-- TAB 2: TODAY'S LOG -->
-    <div id="logTab" class="tab-pane" style="display: none;">
-      <div class="card">
-        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-          <h3>TODAY'S LOG</h3>
-          <button onclick="loadTodayLog()" class="btn btn-sm btn-outline">Refresh</button>
+    <!-- TAB 2: DEDICATED LIVE POSTGRESQL LOG SHEET -->
+    <section id="logTab" class="sec-tab-pane" style="display: none;" role="tabpanel">
+      
+      <div class="card sec-log-card-panel">
+        
+        <!-- Log Sheet Top Bar -->
+        <div class="sec-log-header">
+          <div class="sec-log-title-group">
+            <h3 class="sec-log-heading">
+              <i class="bi bi-journal-check text-accent me-1"></i>
+              TODAY'S GATE LOG
+            </h3>
+            <div class="sec-log-sync-badge">
+              <span class="sec-sync-dot"></span>
+              <span id="logSyncTime">Connecting to PostgreSQL...</span>
+            </div>
+          </div>
+          
+          <div class="sec-log-header-tools">
+            <button onclick="loadTodayLog(true)" class="btn btn-sm btn-outline sec-refresh-btn" id="secRefreshBtn" title="Sync live records from PostgreSQL">
+              <i class="bi bi-arrow-clockwise"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
         </div>
-        <div class="card-body" style="padding: 12px;">
-          <div id="todayLogList" class="log-list">
-            <div class="loading-text">Loading today's log...</div>
+
+        <!-- Log Sheet Controls Toolbar: Filter + View Switcher + Zoom Engine -->
+        <div class="sec-log-toolbar">
+          
+          <!-- Search Bar -->
+          <div class="sec-search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" id="secLogSearch" placeholder="Search student, reg no, laptop..." oninput="onSecuritySearchInput(this.value)">
+            <button type="button" class="sec-clear-btn" id="secSearchClear" onclick="clearSecuritySearch()" style="display: none;" aria-label="Clear search">✕</button>
+          </div>
+
+          <div class="sec-tools-row">
+            <!-- Status Filter Pills -->
+            <div class="sec-filter-pills" role="radiogroup" aria-label="Filter records by status">
+              <button class="sec-filter-pill active" data-status="" onclick="setSecurityStatusFilter('')">All (<span id="countAll">0</span>)</button>
+              <button class="sec-filter-pill pill-inside" data-status="INSIDE" onclick="setSecurityStatusFilter('INSIDE')">Inside (<span id="countInside">0</span>)</button>
+              <button class="sec-filter-pill pill-out" data-status="OUT" onclick="setSecurityStatusFilter('OUT')">Out (<span id="countOut">0</span>)</button>
+            </div>
+
+            <!-- Zoom Engine Controls & View Mode Toggle -->
+            <div class="sec-controls-right">
+              
+              <!-- Zoom Toolbar -->
+              <div class="zoom-controls" title="Adjust table text size for readability">
+                <span class="zoom-label">Zoom</span>
+                <button type="button" class="zoom-btn" onclick="changeLogZoom(-0.1)" title="Zoom Out" aria-label="Zoom Out">−</button>
+                <span class="zoom-level-text" id="zoomLevelDisplay">100%</span>
+                <button type="button" class="zoom-btn" onclick="changeLogZoom(0.1)" title="Zoom In" aria-label="Zoom In">+</button>
+                <button type="button" class="zoom-btn zoom-reset" onclick="resetLogZoom()" title="Reset Zoom" aria-label="Reset Zoom">↺</button>
+              </div>
+
+              <!-- View Switcher (Table vs Mobile Cards) -->
+              <div class="view-toggle-group">
+                <button type="button" class="view-toggle-btn active" id="btnViewTable" onclick="setLogViewMode('table')" title="Detailed Table View">
+                  <i class="bi bi-table"></i>
+                  <span class="d-none-sm">Table</span>
+                </button>
+                <button type="button" class="view-toggle-btn" id="btnViewCards" onclick="setLogViewMode('cards')" title="Mobile Touch Cards View">
+                  <i class="bi bi-grid-fill"></i>
+                  <span class="d-none-sm">Cards</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Controlled Log Sheet Content Container -->
+        <div class="card-body p-0 sec-log-body">
+          
+          <!-- View A: Full PostgreSQL Data Table (Controlled Horizontal Scrolling with Sticky Header & First Col) -->
+          <div id="secTableView" class="sec-log-table-wrap">
+            <table class="sec-log-table" id="secLogTable">
+              <thead>
+                <tr>
+                  <th class="col-sticky">Student Name</th>
+                  <th>Status</th>
+                  <th>Entry Time</th>
+                  <th>Exit Time</th>
+                  <th>Date</th>
+                  <th>Reg No</th>
+                  <th>Dept</th>
+                  <th>Year</th>
+                  <th>Laptop Brand</th>
+                  <th>Model No</th>
+                  <th>Phone Number</th>
+                  <th>QR Ver</th>
+                  <th>Record ID</th>
+                </tr>
+              </thead>
+              <tbody id="secLogTableBody">
+                <tr>
+                  <td colspan="13" class="empty-state">
+                    <span class="loading-spinner" style="width:20px;height:20px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></span>
+                    Loading verified PostgreSQL gate records...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- View B: Mobile Touch Cards (Optimized for One-Handed Outdoor Phone Use) -->
+          <div id="secCardsView" class="sec-log-cards-wrap" style="display: none;">
+            <div id="secLogCardsList" class="sec-log-cards-grid">
+              <div class="empty-state">
+                <span class="loading-spinner" style="width:20px;height:20px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></span>
+                Loading verified records...
+              </div>
+            </div>
+          </div>
+
+          <!-- Paging / Record Summary Footer -->
+          <div class="sec-log-footer">
+            <span id="logSummaryCounter">Showing 0 records</span>
+            <span class="sec-db-source">Source: <strong>Neon PostgreSQL</strong></span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- TAB 3: LIVE STATS -->
+    <section id="statsTab" class="sec-tab-pane" style="display: none;" role="tabpanel">
+      
+      <div class="sec-stats-grid">
+        <div class="stat-card stat-card-teal">
+          <div class="stat-icon" style="background: rgba(45,212,191,0.12); color: var(--accent-teal);">
+            <i class="bi bi-box-arrow-in-right"></i>
+          </div>
+          <div class="stat-value" id="secEntries">{{ stats.today_entries }}</div>
+          <div class="stat-label">TODAY'S ENTRIES</div>
+        </div>
+
+        <div class="stat-card stat-card-purple">
+          <div class="stat-icon" style="background: rgba(167,139,250,0.12); color: var(--accent-purple);">
+            <i class="bi bi-box-arrow-right"></i>
+          </div>
+          <div class="stat-value" id="secExits">{{ stats.today_exits }}</div>
+          <div class="stat-label">TODAY'S EXITS</div>
+        </div>
+
+        <div class="stat-card stat-card-green">
+          <div class="stat-icon" style="background: rgba(52,211,153,0.12); color: var(--success);">
+            <i class="bi bi-door-open-fill"></i>
+          </div>
+          <div class="stat-value" id="secInside">{{ stats.currently_inside }}</div>
+          <div class="stat-label">INSIDE NOW</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 14px;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h3 style="font-size: 0.95rem; margin: 0;">
+            <i class="bi bi-clock-history text-accent me-1"></i>
+            Recent Gate Movements
+          </h3>
+          <button onclick="loadSecurityStats()" class="btn btn-xs btn-outline">Sync</button>
+        </div>
+        <div class="card-body p-0">
+          <div id="recentScansList" class="sec-recent-list">
+            {% if recent_scans %}
+              {% for s in recent_scans %}
+              <div class="sec-recent-item">
+                <div class="sec-recent-info">
+                  <div class="sec-recent-name">{{ s.student_name_snapshot }}</div>
+                  <div class="sec-recent-sub"><code>{{ s.registration_number_snapshot }}</code> · {{ s.laptop_name_snapshot }}</div>
+                </div>
+                <div class="sec-recent-status">
+                  <span class="badge {% if s.status == 'INSIDE' %}badge-inside{% else %}badge-outside{% endif %}">
+                    {{ s.status }}
+                  </span>
+                  <span class="sec-recent-time">
+                    {% if s.status == 'INSIDE' %}
+                      {{ s.entry_fmt }}
+                    {% else %}
+                      {{ s.exit_fmt }}
+                    {% endif %}
+                  </span>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="empty-state" style="padding: 2rem;">No movements recorded yet today.</div>
+            {% endif %}
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- TAB 3: STATS -->
-    <div id="statsTab" class="tab-pane" style="display: none;">
-      <div class="grid grid-3" style="margin-bottom: 16px; gap: 10px;">
-        <div class="stat-card" style="border-left: 4px solid var(--accent-teal); padding: 12px;">
-          <div class="stat-value" id="secEntries" style="font-size: 1.5rem;">—</div>
-          <div class="stat-label" style="font-size: 0.75rem;">ENTRIES TODAY</div>
-        </div>
-        <div class="stat-card" style="border-left: 4px solid var(--accent-purple); padding: 12px;">
-          <div class="stat-value" id="secExits" style="font-size: 1.5rem;">—</div>
-          <div class="stat-label" style="font-size: 0.75rem;">EXITS TODAY</div>
-        </div>
-        <div class="stat-card" style="border-left: 4px solid var(--success); padding: 12px;">
-          <div class="stat-value" id="secInside" style="font-size: 1.5rem;">—</div>
-          <div class="stat-label" style="font-size: 0.75rem;">INSIDE NOW</div>
-        </div>
-      </div>
+    </section>
 
-      <div class="card">
-        <div class="card-header">
-          <h3>Recent Movements</h3>
-        </div>
-        <div class="card-body" style="padding: 12px;">
-          <div id="recentScansList" class="log-list">
-            <div class="loading-text">Loading stats...</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
+  </main>
 
   <!-- Robust Dual CDN for html5-qrcode (unpkg + cdnjs fallback) -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
